@@ -1,16 +1,4 @@
 // Copyright 2025 Lihan Chen
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
 #include "sensor_scan_generation/sensor_scan_generation.hpp"
 
@@ -19,7 +7,19 @@
 
 namespace sensor_scan_generation
 {
+/*
+构造函数初始化了ROS 2节点，并声明和获取了一系列参数：
+lidar_frame_：激光雷达的TF帧。
+base_frame_：底盘的TF帧。
+robot_base_frame_：机器人基座的TF帧。
 
+初始化了以下内容：
+tf_buffer_ 和 tf_listener_：用于处理坐标变换。
+br_：用于发布TF变换的广播器。
+点云和里程计的发布者（pub_laser_cloud_ 和 pub_chassis_odometry_）。
+点云和里程计的订阅者（laser_cloud_sub_ 和 odometry_sub_）。
+使用 message_filters::Synchronizer 同步点云和里程计数据。
+*/
 SensorScanGenerationNode::SensorScanGenerationNode(const rclcpp::NodeOptions & options)
 : Node("sensor_scan_generation", options)
 {
@@ -59,6 +59,20 @@ SensorScanGenerationNode::SensorScanGenerationNode(const rclcpp::NodeOptions & o
     std::placeholders::_2));
 }
 
+/*
+该函数处理同步后的点云和里程计数据，主要步骤如下：
+  -坐标变换计算：
+从里程计到激光雷达的变换（tf_odom_to_lidar）。
+从激光雷达到机器人基座的变换（tf_lidar_to_robot_base_）。
+从激光雷达到底盘的变换（tf_lidar_to_chassis）。
+计算从里程计到底盘和机器人基座的变换（tf_odom_to_chassis 和 tf_odom_to_robot_base）。
+  -发布TF变换：
+发布从里程计到底盘的变换（publishTransform）。
+发布从里程计到机器人基座的变换（publishOdometry）。
+  -点云变换：
+将点云从激光雷达坐标系转换到里程计坐标系（pcl_ros::transformPointCloud）。
+发布转换后的点云数据。
+*/
 void SensorScanGenerationNode::laserCloudAndOdometryHandler(
   const nav_msgs::msg::Odometry::ConstSharedPtr & odometry_msg,
   const sensor_msgs::msg::PointCloud2::ConstSharedPtr & pcd_msg)
@@ -85,6 +99,7 @@ void SensorScanGenerationNode::laserCloudAndOdometryHandler(
   pub_laser_cloud_->publish(out);
 }
 
+//通过 tf_buffer_ 查询两个坐标系之间的变换关系。如果查询失败，返回单位变换。
 tf2::Transform SensorScanGenerationNode::getTransform(
   const std::string & target_frame, const std::string & source_frame, const rclcpp::Time & time)
 {
@@ -100,6 +115,7 @@ tf2::Transform SensorScanGenerationNode::getTransform(
   }
 }
 
+//将TF变换发布
 void SensorScanGenerationNode::publishTransform(
   const tf2::Transform & transform, const std::string & parent_frame,
   const std::string & child_frame, const rclcpp::Time & stamp)
@@ -112,6 +128,7 @@ void SensorScanGenerationNode::publishTransform(
   br_->sendTransform(transform_msg);
 }
 
+//将里程计信息发布
 void SensorScanGenerationNode::publishOdometry(
   const tf2::Transform & transform, std::string parent_frame, const std::string & child_frame,
   const rclcpp::Time & stamp)
