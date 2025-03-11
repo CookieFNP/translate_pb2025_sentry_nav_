@@ -1,16 +1,10 @@
 // Copyright 2025 Lihan Chen
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
+/*
+用于处理机器人速度的坐标变换和发布。
+它通过订阅速度、里程计和路径规划消息，
+计算速度变换，并发布变换后的速度和坐标变换。
+*/
 
 #include "fake_vel_transform/fake_vel_transform.hpp"
 
@@ -19,7 +13,8 @@
 
 namespace fake_vel_transform
 {
-
+//EPSILON：用于判断速度是否为零的阈值。
+//CONTROLLER_TIMEOUT：控制器超时时间，用于判断控制器是否处于激活状态。
 constexpr double EPSILON = 1e-5;
 constexpr double CONTROLLER_TIMEOUT = 0.5;
 
@@ -27,7 +22,7 @@ FakeVelTransform::FakeVelTransform(const rclcpp::NodeOptions & options)
 : Node("fake_vel_transform", options)
 {
   RCLCPP_INFO(get_logger(), "Start FakeVelTransform!");
-
+//真实基座坐标系、虚拟基座坐标系、速度主题等
   this->declare_parameter<std::string>("robot_base_frame", "gimbal_link");
   this->declare_parameter<std::string>("fake_robot_base_frame", "gimbal_link_fake");
   this->declare_parameter<std::string>("odom_topic", "odom");
@@ -77,11 +72,13 @@ FakeVelTransform::FakeVelTransform(const rclcpp::NodeOptions & options)
     std::chrono::milliseconds(20), std::bind(&FakeVelTransform::publishTransform, this));
 }
 
+//处理旋转速度的回调函数，更新旋转速度。
 void FakeVelTransform::cmdSpinCallback(const example_interfaces::msg::Float32::SharedPtr msg)
 {
   spin_speed_ = msg->data;
 }
 
+//处理里程计消息的回调函数，更新机器人的角度。
 void FakeVelTransform::odometryCallback(const nav_msgs::msg::Odometry::ConstSharedPtr & msg)
 {
   // NOTE: Haven't synced with local_plan
@@ -90,6 +87,7 @@ void FakeVelTransform::odometryCallback(const nav_msgs::msg::Odometry::ConstShar
   }
 }
 
+//处理输入速度的回调函数，根据控制器是否激活，直接发布速度或存储待处理速度。
 void FakeVelTransform::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
 {
   std::lock_guard<std::mutex> lock(cmd_vel_mutex_);
@@ -106,12 +104,14 @@ void FakeVelTransform::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr
   }
 }
 
+//处理局部路径规划消息的回调函数，更新控制器激活时间。
 void FakeVelTransform::localPlanCallback(const nav_msgs::msg::Path::ConstSharedPtr & /*msg*/)
 {
   // Consider nav2_controller_server is activated when receiving local_plan
   last_controller_activate_time_ = rclcpp::Clock().now();
 }
 
+//同步处理里程计和局部路径规划消息，计算速度变换并发布。
 void FakeVelTransform::syncCallback(
   const nav_msgs::msg::Odometry::ConstSharedPtr & odom_msg,
   const nav_msgs::msg::Path::ConstSharedPtr & /*local_plan_msg*/)
@@ -132,6 +132,7 @@ void FakeVelTransform::syncCallback(
   cmd_vel_chassis_pub_->publish(aft_tf_vel);
 }
 
+//节点使用 tf2 库发布从真实基座坐标系到虚拟基座坐标系的变换
 void FakeVelTransform::publishTransform()
 {
   geometry_msgs::msg::TransformStamped t;
@@ -144,6 +145,7 @@ void FakeVelTransform::publishTransform()
   tf_broadcaster_->sendTransform(t);
 }
 
+//实现了速度变换的逻辑
 geometry_msgs::msg::Twist FakeVelTransform::transformVelocity(
   const geometry_msgs::msg::Twist::SharedPtr & twist, float yaw_diff)
 {
