@@ -23,6 +23,18 @@ namespace ign_sim_pointcloud_tool
 PointCloudConverter::PointCloudConverter(const rclcpp::NodeOptions & options)
 : rclcpp::Node("point_cloud_converter", options)
 {
+  /*
+pcd_topic_：点云数据的主题名称。
+n_scan_：扫描线数（例如激光雷达的垂直分辨率）。
+horizon_scan_：水平扫描点数。
+ang_bottom_：底部角度（单位为度）。
+ang_res_y_：垂直角度分辨率（单位为度）。
+
+n_scan_：定义了点云的垂直扫描线数，用于确定点的行索引。
+horizon_scan_：定义了水平扫描点数，用于计算时间戳。
+ang_bottom_ 和 ang_res_y_：用于计算点的垂直角度和行索引。
+
+  */
   this->declare_parameter<std::string>("pcd_topic", "livox/lidar");
   this->declare_parameter<int>("n_scan", 32);
   this->declare_parameter<int>("horizon_scan", 1875);
@@ -47,6 +59,14 @@ PointCloudConverter::PointCloudConverter(const rclcpp::NodeOptions & options)
 
 void PointCloudConverter::lidarHandle(const sensor_msgs::msg::PointCloud2::SharedPtr pc_msg)
 {
+/*
+该函数将原始点云数据从ROS消息格式转换为PCL点云格式，然后对每个点进行处理：
+计算每个点的垂直角度。
+根据垂直角度和参数计算点的行索引（ring）。
+跳过超出扫描范围的点。
+为每个点添加时间戳信息。
+
+*/
   pcl::PointCloud<pcl::PointXYZ>::Ptr original_pc(new pcl::PointCloud<pcl::PointXYZ>());
   pcl::PointCloud<PointXYZIRT>::Ptr converted_pc(new pcl::PointCloud<PointXYZIRT>());
 
@@ -66,6 +86,9 @@ void PointCloudConverter::lidarHandle(const sensor_msgs::msg::PointCloud2::Share
       180 / M_PI;
     int row_id = static_cast<int>((vertical_angle + ang_bottom_) / ang_res_y_);
 
+//ring：表示点所在的扫描行。
+//time：表示点的时间戳。
+    
     if (row_id >= 0 && row_id < n_scan_) {
       new_point.ring = row_id;
     } else {
@@ -73,6 +96,7 @@ void PointCloudConverter::lidarHandle(const sensor_msgs::msg::PointCloud2::Share
     }
 
     new_point.time = (point_id % horizon_scan_) * 0.1f / horizon_scan_;
+
 
     converted_pc->points.push_back(new_point);
   }
