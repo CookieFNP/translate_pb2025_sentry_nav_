@@ -9,6 +9,16 @@ livox_ros_driver2:
     user_config_path: $(find-pkg-share pb2025_nav_bringup)/config/reality/mid360_user_config.json
     cmdline_input_bd_code: livox0000000001
     lvx_file_path: ""
+/*             ↑
+配置Livox激光雷达的驱动程序，用于数据采集和发布。
+关键参数：
+xfer_format：数据传输格式（4 表示包含所有消息类型）。
+publish_freq：发布频率（20 Hz）。
+frame_id：激光雷达的TF帧（front_mid360）。
+user_config_path：用户配置文件路径。
+cmdline_input_bd_code：设备的绑定码。
+*/
+
 
 point_lio:
   ros__parameters:
@@ -22,6 +32,18 @@ point_lio:
     filter_size_map: 0.2                                # Options: 0.5, 0.3, 0.15, 0.1
     ivox_nearby_type: 18                                # Options: 0, 6, 18, 26
     runtime_pos_log_enable: False                       # Option: True
+/*
+配置Point-LIO（点云和IMU融合的SLAM算法）。
+关键参数：
+use_imu_as_input：是否使用IMU数据作为输入（False）。
+lidar_type：激光雷达类型（1 表示Livox）。
+scan_line：扫描线数。
+filter_size_surf 和 filter_size_map：点云滤波的分辨率。
+ivox_nearby_type：点云处理的邻域类型。
+mapping 和 odometry：SLAM和里程计相关参数。
+publish：发布相关配置（如路径、点云、TF等）。
+*/
+
 
     common:
       lid_topic: "livox/lidar"
@@ -93,6 +115,14 @@ loam_interface:
     odom_frame: "odom"
     base_frame: "base_footprint"
     lidar_frame: "front_mid360"
+/*
+配置LOAM（Lidar Odometry and Mapping）接口。
+关键参数：
+state_estimation_topic：状态估计主题（aft_mapped_to_init）。
+registered_scan_topic：注册点云主题（cloud_registered）。
+odom_frame 和 base_frame：里程计和机器人基座的TF帧。
+*/
+
 
 sensor_scan_generation:
   ros__parameters:
@@ -100,6 +130,12 @@ sensor_scan_generation:
     lidar_frame: "front_mid360"
     base_frame: "base_footprint"
     robot_base_frame: "gimbal_yaw"
+/*
+生成传感器扫描数据。
+lidar_frame 和 base_frame：激光雷达和机器人基座的TF帧。
+robot_base_frame：机器人基座的虚拟帧（gimbal_yaw_fake）。
+*/
+
 
 terrain_analysis:
   ros__parameters:
@@ -130,6 +166,16 @@ terrain_analysis:
     min_rel_z: -1.5                     # min_rel_z 以及 max_rel_z 限制了有效点云点的Z值范围，用于对天花板和地板进行处理
     max_rel_z: 0.5
     dis_ratio_z: 0.2                    # Z 值的最大最小范围由这两个值决定，但是并不等于这两个值，是有一个比例关系的，距离机器人越远，限定范围就越大，这其中考虑了坡度
+/*
+地形分析，用于地面检测和障碍物处理。
+关键参数：
+sensor_frame：传感器的TF帧（front_mid360）。
+scan_voxel_size：点云下采样分辨率（0.05 m）。
+use_sorting：是否使用排序算法处理点云（True）。
+vehicle_height：车辆高度（0.5 m）。
+min_rel_z 和 max_rel_z：点云的Z值范围限制。
+*/
+
 
 fake_vel_transform:
   ros__parameters:
@@ -141,6 +187,14 @@ fake_vel_transform:
     output_cmd_vel_topic: "cmd_vel"
     cmd_spin_topic: "cmd_spin"
     init_spin_speed: 3.14
+/*
+功能：虚拟速度变换，用于导航和控制。
+关键参数：
+odom_topic：里程计主题（odometry）。
+input_cmd_vel_topic 和 output_cmd_vel_topic：输入和输出的速度主题。
+cmd_spin_topic：旋转速度主题。
+init_spin_speed：初始旋转速度（3.14 rad/s）。
+*/
 
 small_gicp_relocalization:
   ros__parameters:
@@ -157,6 +211,15 @@ small_gicp_relocalization:
     lidar_frame: "front_mid360"
     # The prior_pcd_file does not need to be specified since it going to be set by defaults in launch.
     # prior_pcd_file: ""
+/*
+基于GICP（Generalized Iterative Closest Point）的小范围重定位。
+关键参数：
+num_threads：线程数（4）。
+global_leaf_size 和 registered_leaf_size：点云的分辨率。
+max_dist_sq：最大距离平方（3.0）。
+map_frame 和 odom_frame：地图和里程计的TF帧。
+*/
+
 
 pointcloud_to_laserscan:
   ros__parameters:
@@ -173,6 +236,14 @@ pointcloud_to_laserscan:
     range_min: 0.3
     range_max: 10.0
     use_inf: true
+/*
+将点云转换为激光雷达扫描数据。
+关键参数：
+target_frame：目标TF帧（chassis）。
+angle_min 和 angle_max：扫描角度范围（-π 到 π）。
+range_min 和 range_max：扫描范围（0.3 m 到 10.0 m）。
+*/
+
 
 slam_toolbox:
   ros__parameters:
@@ -248,6 +319,17 @@ slam_toolbox:
     minimum_angle_penalty: 0.9
     minimum_distance_penalty: 0.5
     use_response_expansion: true
+/*
+配置SLAM Toolbox，用于2D SLAM。
+关键参数：
+solver_plugin：求解器插件（CeresSolver）。
+odom_frame、map_frame 和 base_frame：里程计、地图和机器人基座的TF帧。
+scan_topic：激光雷达扫描主题（obstacle_scan）。
+mode：SLAM模式（mapping）。
+resolution：地图分辨率（0.05 m）。
+loop_search_maximum_distance：回环检测的最大距离（3.0 m）。
+*/
+
 
 bt_navigator:
   ros__parameters:
@@ -308,6 +390,14 @@ bt_navigator:
       - nav2_assisted_teleop_cancel_bt_node
       - nav2_drive_on_heading_cancel_bt_node
       - nav2_is_battery_charging_condition_bt_node
+/*
+行为树导航器，用于路径规划和行为控制。
+关键参数：
+global_frame 和 robot_base_frame：全局和机器人基座的TF帧。
+bt_loop_duration：行为树循环周期（10 s）。
+default_nav_to_pose_bt_xml 和 default_nav_through_poses_bt_xml：行为树文件路径。
+*/
+
 
 controller_server:
   ros__parameters:
@@ -361,6 +451,12 @@ controller_server:
       curvature_forward_dist: 0.7                       # 前向距离，用于曲率计算
       curvature_backward_dist: 0.3                      # 后向距离，用于曲率计算
       max_velocity_scaling_factor_rate: 0.9             # 速度缩放因子的最大变化率
+/*
+controller_frequency：控制器频率（20 Hz）。
+min_x_velocity_threshold 和 min_theta_velocity_threshold：最小速度阈值。
+FollowPath：路径跟踪控制器的参数（PID控制、速度限制等）。
+*/
+
 
 local_costmap:
   local_costmap:
@@ -404,6 +500,8 @@ local_costmap:
         cost_scaling_factor: 4.0
         inflation_radius: 0.7
       always_send_full_costmap: False
+/*见下global后*/
+
 
 global_costmap:
   global_costmap:
@@ -445,6 +543,14 @@ global_costmap:
         cost_scaling_factor: 4.0
         inflation_radius: 0.7
       always_send_full_costmap: False
+/*
+局部和全局代价地图配置。
+关键参数：
+update_frequency 和 publish_frequency：更新和发布频率。
+plugins：代价地图插件（如障碍物层、静态层、膨胀层）。
+obstacle_layer：障碍物层的配置（如点云源、障碍物高度范围等）。
+*/
+
 
 # The yaml_filename does not need to be specified since it going to be set by defaults in launch.
 # If you'd rather set it in the yaml, remove the default "map" value in the tb3_simulation_launch.py
@@ -460,6 +566,13 @@ map_saver:
     free_thresh_default: 0.25
     occupied_thresh_default: 0.65
     map_subscribe_transient_local: True
+/*
+地图服务器和保存器。
+关键参数：
+yaml_filename：地图文件路径。
+save_map_timeout：保存地图的超时时间（5.0 s）。
+*/
+
 
 planner_server:
   ros__parameters:
@@ -497,6 +610,15 @@ planner_server:
         w_data: 0.2
         tolerance: 1.0e-10
         do_refinement: true
+/*
+路径规划器服务器。
+关键参数：
+planner_plugins：路径规划器插件（如GridBased）。
+tolerance：路径规划的容差（0.5 m）。
+motion_model_for_search：运动模型（DUBIN）。
+minimum_turning_radius：最小转弯半径（0.05 m）。
+*/
+
 
 smoother_server:
   ros__parameters:
@@ -507,6 +629,14 @@ smoother_server:
       tolerance: 1.0e-10
       max_its: 1000
       do_refinement: True
+/*
+路径平滑器服务器。
+关键参数：
+simple_smoother：平滑器插件（SimpleSmoother）。
+max_iterations：最大迭代次数（1000）。
+tolerance：平滑容差（1.0e-10）。
+*/
+
 
 behavior_server:
   ros__parameters:
@@ -539,6 +669,13 @@ behavior_server:
     service_name: "global_costmap/get_costmap"
     max_radius: 2.0
     visualize: false
+/*
+行为服务器，用于导航中的行为控制。
+关键参数：
+behavior_plugins：行为插件（如旋转、后退、等待等）。
+max_rotational_vel 和 min_rotational_vel：旋转速度范围。
+*/
+
 
 waypoint_follower:
   ros__parameters:
@@ -550,6 +687,13 @@ waypoint_follower:
       plugin: "nav2_waypoint_follower::WaitAtWaypoint"
       enabled: True
       waypoint_pause_duration: 200
+/*
+路径点跟随器。
+关键参数：
+loop_rate：循环频率（20 Hz）。
+waypoint_task_executor_plugin：路径点任务执行器插件（wait_at_waypoint）。
+*/
+
 
 velocity_smoother:
   ros__parameters:
@@ -565,6 +709,14 @@ velocity_smoother:
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
+/*
+速度平滑器。
+关键参数：
+smoothing_frequency：平滑频率（20 Hz）。
+max_velocity 和 min_velocity：速度范围。
+max_accel 和 max_decel：加速度和减速度范围。
+*/
+
 
 pb_teleop_twist_joy_node:
   ros__parameters:
@@ -601,3 +753,10 @@ pb_teleop_twist_joy_node:
       roll: 0.0
       pitch: -1.5
       yaw: 3.5
+/*
+基于游戏手柄的遥操作节点。
+关键参数：
+control_mode：控制模式（auto_control）。
+enable_button 和 enable_turbo_button：启用和加速按钮。
+axis_chassis 和 scale_chassis：底盘控制轴和速度缩放。
+*/
