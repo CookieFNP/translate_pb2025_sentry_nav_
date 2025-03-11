@@ -1,16 +1,5 @@
 // Copyright 2025 Lihan Chen
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
 #include "loam_interface/loam_interface.hpp"
 
@@ -20,9 +9,27 @@
 namespace loam_interface
 {
 
+/*
+订阅LOAM生成的点云和里程计数据。
+将点云和里程计数据从激光雷达的局部坐标系转换到全局坐标系（odom）。
+发布转换后的点云和里程计数据。
+*/
 LoamInterfaceNode::LoamInterfaceNode(const rclcpp::NodeOptions & options)
 : Node("loam_interface", options)
 {
+  /*
+--构造函数初始化了ROS 2节点，并声明和获取了一系列参数：
+state_estimation_topic_：LOAM生成的里程计数据主题。
+registered_scan_topic_：LOAM生成的点云数据主题。
+odom_frame_：全局坐标系（odom）的名称。
+base_frame_：机器人的基座坐标系名称。
+lidar_frame_：激光雷达的坐标系名称。
+
+--初始化了以下内容：
+tf_buffer_ 和 tf_listener_：用于处理坐标变换。
+点云和里程计的发布者（pcd_pub_ 和 odom_pub_）。
+点云和里程计的订阅者（pcd_sub_ 和 odom_sub_）。
+  */
   this->declare_parameter<std::string>("state_estimation_topic", "");
   this->declare_parameter<std::string>("registered_scan_topic", "");
   this->declare_parameter<std::string>("odom_frame", "odom");
@@ -51,6 +58,8 @@ LoamInterfaceNode::LoamInterfaceNode(const rclcpp::NodeOptions & options)
     std::bind(&LoamInterfaceNode::odometryCallback, this, std::placeholders::_1));
 }
 
+//处理点云数据，将点云从激光雷达的局部坐标系（lidar_odom）转换到全局坐标系（odom）。
+//使用 pcl_ros::transformPointCloud 函数完成这一转换，并发布转换后的点云数据。
 void LoamInterfaceNode::pointCloudCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr msg)
 {
   // NOTE: Input point cloud message is based on the `lidar_odom`
@@ -60,6 +69,12 @@ void LoamInterfaceNode::pointCloudCallback(const sensor_msgs::msg::PointCloud2::
   pcd_pub_->publish(*out);
 }
 
+/*
+处理里程计数据，将里程计从激光雷达的局部坐标系（lidar_odom）转换到全局坐标系（odom）。
+首先通过TF查找从机器人基座坐标系（base_frame）到激光雷达坐标系（lidar_frame）的变换关系，
+然后使用这个变换关系将里程计数据转换到全局坐标系。
+初始化从基座坐标系到激光雷达坐标系的变换关系（tf_odom_to_lidar_odom_），（如果尚未初始化）。
+  */
 void LoamInterfaceNode::odometryCallback(const nav_msgs::msg::Odometry::ConstSharedPtr msg)
 {
   // NOTE: Input odometry message is based on the `lidar_odom`
