@@ -1,21 +1,23 @@
 # Copyright 2025 Lihan Chen
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
+'''
+---机器人描述启动：
+该脚本用于启动机器人描述模块，包括发布机器人状态（robot_state_publisher）和关节状态（joint_state_publisher）。
+这些功能通常用于在ROS环境中描述机器人的几何和运动学信息。
 
-# NOTE: This startup file is only used when the navigation module is standalone
-# It is used to launch the robot state publisher and joint state publisher.
-# But in a complete robot system, this part should be completed by an independent robot startup module
+---模块化设计：
+使用IncludeLaunchDescription嵌套其他启动脚本（如robot_description_launch.py），实现模块化启动。
+支持通过参数动态配置启动行为。
+
+---参数化配置：
+提供了多个启动参数（如namespace、use_sim_time、robot_name等），允许用户根据需求灵活配置。
+参数通过LaunchConfiguration动态获取。
+
+---命名空间和重映射：
+使用PushRosNamespace为所有启动的节点设置命名空间。
+使用SetRemap重映射/tf和/tf_static话题，以适应机器人系统的需求。
+
+'''
 
 import os
 
