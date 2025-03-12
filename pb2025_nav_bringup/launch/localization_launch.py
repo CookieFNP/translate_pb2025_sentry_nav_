@@ -1,17 +1,26 @@
 # Copyright 2025 Lihan Chen
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+'''
+---导航定位系统启动：
+集成了nav2导航堆栈的定位模块，支持地图服务器（map_server）、重定位（small_gicp_relocalization）等功能。
+支持通过参数动态配置启动行为。
 
+---模块化设计：
+支持独立节点模式和组合节点模式：
+独立节点模式：通过Node启动各个功能模块。
+组合节点模式：通过LoadComposableNodes将多个功能模块组合到一个容器中，减少资源消耗。
+
+---参数化配置：
+提供了丰富的启动参数（如namespace、map、use_sim_time、params_file等），允许用户根据需求灵活配置。
+参数通过LaunchConfiguration动态获取，并通过RewrittenYaml动态生成配置文件。
+
+---日志和环境变量管理：
+设置环境变量（如RCUTILS_LOGGING_BUFFERED_STREAM和RCUTILS_COLORIZED_OUTPUT）以优化日志输出。
+支持通过log_level参数动态设置日志级别。
+
+---仿真时间支持：
+支持通过use_sim_time参数决定是否使用仿真时间（通常用于Gazebo仿真环境）。
+
+'''
 
 import os
 
