@@ -1,17 +1,23 @@
 # Copyright 2025 Lihan Chen
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
+'''
+该脚本用于启动一个完整的导航系统，包括路径规划、行为控制、平滑处理等多个功能模块。
+支持通过参数化配置动态调整启动行为（如是否使用仿真时间、是否自动启动导航堆栈等）。
+
+导航核心模块：
+controller_server：路径控制器。
+smoother_server：路径平滑器。
+planner_server：路径规划器。
+behavior_server：行为控制器。
+bt_navigator：行为树导航器。
+waypoint_follower：路径点跟随器。
+velocity_smoother：速度平滑器。
+辅助模块：
+loam_interface：激光雷达处理接口。
+sensor_scan_generation：传感器扫描生成器。
+terrain_analysis：地形分析模块。
+fake_vel_transform：虚拟速度转换模块。
+'''
 
 import os
 
@@ -114,6 +120,13 @@ def generate_launch_description():
         "log_level", default_value="info", description="log level"
     )
 
+
+'''
+支持两种启动模式：
+独立节点模式：通过Node启动各个功能模块。
+组合节点模式：通过LoadComposableNodes将多个功能模块组合到一个容器中，减少资源消耗。
+'''
+    
     load_nodes = GroupAction(
         condition=IfCondition(PythonExpression(["not ", use_composition])),
         actions=[
