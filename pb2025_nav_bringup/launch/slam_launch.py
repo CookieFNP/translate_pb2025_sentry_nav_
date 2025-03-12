@@ -1,17 +1,29 @@
 # Copyright 2025 Lihan Chen
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+'
+''
+---导航和SLAM系统启动：
+集成了nav2导航堆栈和slam_toolbox，支持地图保存、点云处理、激光雷达扫描等功能。
+支持通过参数动态配置启动行为（如是否使用仿真时间、是否自动启动导航堆栈等）。
 
+---模块化设计：
+使用Node启动各个功能模块，包括地图保存服务器、生命周期管理器、点云到激光雷达转换、SLAM工具箱等。
+支持通过参数化配置动态调整节点行为。
+
+---参数化配置：
+提供了丰富的启动参数（如namespace、params_file、use_sim_time等），允许用户根据需求灵活配置。
+参数通过LaunchConfiguration动态获取，并通过RewrittenYaml动态生成配置文件。
+
+---仿真时间支持：
+支持通过use_sim_time参数决定是否使用仿真时间（通常用于Gazebo仿真环境）。
+
+---日志管理：
+支持通过log_level参数动态设置日志级别。
+支持节点崩溃后的自动重启（通过use_respawn参数）。
+
+---坐标变换发布：
+使用tf2_ros发布静态变换，例如从map到odom的变换。
+
+'''
 
 import os
 
