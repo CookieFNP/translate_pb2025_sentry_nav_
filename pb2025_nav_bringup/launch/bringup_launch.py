@@ -1,16 +1,28 @@
 # Copyright 2025 Lihan Chen
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+'''
+---导航系统启动：
+集成了nav2导航堆栈，支持SLAM和定位功能。
+支持通过参数动态配置启动行为（如是否运行SLAM、是否使用仿真时间等）。
+
+---模块化设计：
+使用IncludeLaunchDescription嵌套其他启动脚本（如slam_launch.py、localization_launch.py、navigation_launch.py），实现模块化启动。
+支持通过条件判断（如IfCondition）动态决定是否启动某些模块。
+
+---参数化配置：
+提供了丰富的启动参数（如namespace、slam、map、params_file等），允许用户根据需求灵活配置。
+参数通过LaunchConfiguration动态获取，并通过RewrittenYaml和ReplaceString动态生成配置文件。
+
+---命名空间和话题重映射：
+使用PushRosNamespace为所有启动的节点设置命名空间。
+使用SetRemap重映射/tf和/tf_static话题，以适应机器人系统的需求。
+
+---环境变量管理：
+设置环境变量（如RCUTILS_LOGGING_BUFFERED_STREAM和RCUTILS_COLORIZED_OUTPUT）以优化日志输出。
+支持通过log_level参数动态设置日志级别。
+
+---仿真时间支持：
+支持通过use_sim_time参数决定是否使用仿真时间（通常用于Gazebo仿真环境）。
+'''
 
 import os
 
