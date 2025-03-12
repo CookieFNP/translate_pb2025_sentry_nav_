@@ -1,17 +1,12 @@
 # Copyright 2025 Lihan Chen
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
+'''
+除了核心的多机器人导航功能外，这段代码还顺带启动了以下功能：
+RVIZ可视化工具（可选，基于use_rviz参数）。
+Gazebo仿真环境（隐式启动，基于仿真时间和机器人初始姿态的设置）。
+日志输出（基于log_settings参数）。
+导航功能模块（通过嵌套启动脚本rm_navigation_simulation_launch.py实现）。
+'''
 
 import os
 
