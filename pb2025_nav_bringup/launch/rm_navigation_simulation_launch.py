@@ -1,16 +1,28 @@
 # Copyright 2025 Lihan Chen
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+
+'''
+---导航系统启动：
+集成了nav2导航堆栈，支持路径规划、SLAM（Simultaneous Localization and Mapping）等功能。
+支持通过参数动态配置导航系统的启动行为。
+
+---模块化设计：
+支持多种功能模块，包括：
+RVIZ可视化：通过rviz_launch.py启动RVIZ，用于导航系统的可视化。
+激光雷达点云处理：通过ign_sim_pointcloud_tool_node处理激光雷达数据。
+手柄遥操作：通过joy_teleop_launch.py启动手柄遥操作功能。
+导航堆栈：通过bringup_launch.py启动导航核心模块。
+
+---参数化配置：
+提供了丰富的启动参数（如namespace、slam、world、map、params_file等），允许用户根据需求灵活配置。
+参数通过LaunchConfiguration动态获取，并通过RewrittenYaml动态生成配置文件。
+
+---条件启动：
+使用IfCondition根据参数值动态决定是否启动某些模块（如RVIZ）。
+
+---仿真时间支持：
+支持通过use_sim_time参数决定是否使用仿真时间（通常用于Gazebo仿真环境）。
+
+'''
 
 
 import os
