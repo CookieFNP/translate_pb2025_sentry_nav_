@@ -1,4 +1,4 @@
-# reality yaml 备注调参版
+# reality yaml 备注调参版，[MayFix]为可尝试调节部分。
 livox_ros_driver2:
   ros__parameters:
     xfer_format: 4                                      # 0-PointCloud2Msg(PointXYZRTL), 1-LivoxCustomMsg, 2-PclPxyziMsg, 3-LivoxImuMsg, 4-AllMsg 数据传输格式
