@@ -1,5 +1,5 @@
 # reality yaml 备注调参版，[MayFix]为可尝试调节部分。
-# 注释了wiki的部分 为官方总结的调参指南。优先按此调参。
+# 注释了wiki的部分 为北极熊总结的调参指南。优先按此调参。
 
 # wiki：
 # 在实车部署中，需修改 pb2025_robot_description 功能包中的 pb2025_sentry_robot.sdf.xmacro。
