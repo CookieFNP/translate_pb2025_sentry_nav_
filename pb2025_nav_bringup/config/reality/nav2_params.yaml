@@ -1,127 +1,107 @@
+# reality yaml 备注调参版
 livox_ros_driver2:
   ros__parameters:
-    xfer_format: 4                                      # 0-PointCloud2Msg(PointXYZRTL), 1-LivoxCustomMsg, 2-PclPxyziMsg, 3-LivoxImuMsg, 4-AllMsg
+    xfer_format: 4                                      # 0-PointCloud2Msg(PointXYZRTL), 1-LivoxCustomMsg, 2-PclPxyziMsg, 3-LivoxImuMsg, 4-AllMsg 数据传输格式
     multi_topic: 0                                      # 0-All LiDARs share the same topic, 1-One LiDAR one topic
     data_src: 0                                         # 0-lidar, others-Invalid data src
-    publish_freq: 20.0                                  # frequency of publish, 5.0, 10.0, 20.0, 50.0, etc.
+    publish_freq: 20.0                                  # [MayFix] frequency of publish, 5.0, 10.0, 20.0, 50.0, etc. 发布频率
     output_data_type: 0
-    frame_id: front_mid360
-    user_config_path: $(find-pkg-share pb2025_nav_bringup)/config/reality/mid360_user_config.json
-    cmdline_input_bd_code: livox0000000001
-    lvx_file_path: ""
-/*             ↑
-配置Livox激光雷达的驱动程序，用于数据采集和发布。
-关键参数：
-xfer_format：数据传输格式（4 表示包含所有消息类型）。
-publish_freq：发布频率（20 Hz）。
-frame_id：激光雷达的TF帧（front_mid360）。
-user_config_path：用户配置文件路径。
-cmdline_input_bd_code：设备的绑定码。
-*/
+    frame_id: front_mid360                              # 激光雷达的TF帧（front_mid360）
+    user_config_path: $(find-pkg-share pb2025_nav_bringup)/config/reality/mid360_user_config.json  # 用户配置文件路径
+    cmdline_input_bd_code: livox0000000001              # 设备的绑定码
+    lvx_file_path: "" 
+
 
 
 point_lio:
   ros__parameters:
-    use_imu_as_input: False                             # Change to True to use IMU as input of Point-LIO
-    prop_at_freq_of_imu: True
-    check_satu: True
-    init_map_size: 10
-    point_filter_num: 8                                 # Options: 4, 3
-    space_down_sample: True
-    filter_size_surf: 0.2                               # Options: 0.5, 0.3, 0.2, 0.15, 0.1
-    filter_size_map: 0.2                                # Options: 0.5, 0.3, 0.15, 0.1
-    ivox_nearby_type: 18                                # Options: 0, 6, 18, 26
-    runtime_pos_log_enable: False                       # Option: True
-/*
-配置Point-LIO（点云和IMU融合的SLAM算法）。
-关键参数：
-use_imu_as_input：是否使用IMU数据作为输入（False）。
-lidar_type：激光雷达类型（1 表示Livox）。
-scan_line：扫描线数。
-filter_size_surf 和 filter_size_map：点云滤波的分辨率。
-ivox_nearby_type：点云处理的邻域类型。
-mapping 和 odometry：SLAM和里程计相关参数。
-publish：发布相关配置（如路径、点云、TF等）。
-*/
+    use_imu_as_input: False                             # Change to True to use IMU as input of Point-LIO  是否使用IMU数据作为输入
+    prop_at_freq_of_imu: True                           # 是否数据处理频率与 IMU 的频率一致
+    check_satu: True                                    # 是否检查传感器数据的饱和度（异常处理用）
+    init_map_size: 10                                   # 初始地图的大小
+    point_filter_num: 8                                 # [MayFix] Options: 4, 3  点云滤波器的数量，控制稀疏程度
+    space_down_sample: True                             # 是否对点云进行空间降采样，降低复杂度
+    filter_size_surf: 0.2                               # [MayFix] Options: 0.5, 0.3, 0.2, 0.15, 0.1  表面点云滤波的分辨率，较小则点云密度大，计算量大
+    filter_size_map: 0.2                                # [MayFix] Options: 0.5, 0.3, 0.15, 0.1  地图点云滤波的分辨率
+    ivox_nearby_type: 18                                # [MayFix] Options: 0, 6, 18, 26 点云处理的邻域类型。
+    runtime_pos_log_enable: False                       # Option: True 是否在运行时记录位置信息
+
 
 
     common:
       lid_topic: "livox/lidar"
       imu_topic: "livox/imu"
-      con_frame: False                                  # True: if you need to combine several LiDAR frames into one
-      con_frame_num: 1                                  # the number of frames combined
-      cut_frame: False                                  # True: if you need to cut one LiDAR frame into several subframes
-      cut_frame_time_interval: 0.05                     # should be integral fraction of 1 / LiDAR frequency
-      time_diff_lidar_to_imu: 0.0                       # Time offset between LiDAR and IMU calibrated by other algorithms, e.g., LI-Init (find in Readme)
+      con_frame: False                                  # [MayFix] 是否需要将多个激光雷达帧合并为一个帧，增大点云密度（若点云数据稀疏时有效），增加计算复杂度
+      con_frame_num: 1                                  # 合并的激光雷达帧数量，默认1表示不合并捏
+      cut_frame: False                                  # 是否需要将一个激光雷达帧分割为多个子帧，利于分段处理（处理高频率数据时有效）
+      cut_frame_time_interval: 0.05                     # 分割子帧的时间间隔
+      time_diff_lidar_to_imu: 0.0                       # 激光雷达和 IMU 数据之间的时间偏移，时间戳不同步时更改。值为秒，正值表示激光雷达数据晚于IMU
 
     prior_pcd:
-      enable: False
+      enable: False                                     # 是否启用先验点云地图（它README说开了会飘得很
       # NOTE: `prior_pcd_map_path` will be provided in the launch file
       # prior_pcd_map_path: ""
-      init_pose: [ 0.0, 0.0, 0.0 ]
+      init_pose: [ 0.0, 0.0, 0.0 ]                      # xyz初始位姿
 
     preprocess:
-      lidar_type: 1                                     # 1 for Livox serials LiDAR, 2 for Velodyne LiDAR, 3 for ouster LiDAR
-      scan_line: 4
-      timestamp_unit: 3                                 # the unit of time/t field in the PointCloud2 rostopic: 0-second, 1-milisecond, 2-microsecond, 3-nanosecond.
-      blind: 0.5
+      lidar_type: 1                                     # 激光雷达类型，1 for Livox serials LiDAR, 2 for Velodyne LiDAR, 3 for ouster LiDAR
+      scan_line: 4                                      # 扫描线数
+      timestamp_unit: 3                                 # 点云数据中时间戳字段的单位。0：秒 1：毫秒 2：微秒 3：纳秒
+      blind: 0.5                                        # [MayFix] 激光雷达的盲区距离。表示激光雷达无法检测到的近距离范围（单位：米）。
+                                                        # 若倒装雷达等情况中，检测到车本身位置有障碍物则修改
 
     mapping:
-      imu_en: True
-      extrinsic_est_en: False                           # for aggressive motion, set this variable False
-      imu_time_inte: 0.005                              # = 1 / frequency of IMU
-      lidar_time_inte: 0.1
-      satu_acc: 4.0                                     # the saturation value of IMU's acceleration. not related to the units
-      satu_gyro: 35.0                                   # the saturation value of IMU's angular velocity. not related to the units
-      acc_norm: 1.0                                     # 1.0 for g as unit, 9.81 for m/s^2 as unit of the IMU's acceleration
-      lidar_meas_cov: 0.01                              # 0.001
-      acc_cov_output: 500.0
-      gyr_cov_output: 1000.0
-      b_acc_cov: 0.0001
-      b_gyr_cov: 0.0001
-      imu_meas_acc_cov: 0.1
-      imu_meas_omg_cov: 0.1
-      gyr_cov_input: 0.1                                # for IMU as input model
-      acc_cov_input: 0.1                                # for IMU as input model
-      plane_thr: 0.1                                    # 0.05, the threshold for plane criteria, the smaller, the flatter a plane
-      match_s: 81.0
-      ivox_grid_resolution: 0.5
-      gravity: [0.0, 0.0, -9.8]                         # gravity to be aligned
-      gravity_init: [0.0, 0.0, -9.8]                    # preknown gravity in the first IMU body frame, use when imu_en is False or start from a non-stationary state
-      extrinsic_T: [ -0.011, -0.02329, 0.04412 ]
-      extrinsic_R: [ 1.0, 0.0, 0.0,
+      imu_en: True                                      # 是否使用IMU数据
+      extrinsic_est_en: False                           # [MayFix] 是否启用外参估计
+                                                        # 如果设置为 True，算法会动态估计激光雷达和 IMU 之间的外参（位置和姿态）。
+                                                        # 如果设置为 False，则使用预先校准的外参（extrinsic_T 和 extrinsic_R）。
+                                                        # 对于运动较为剧烈的场景，建议设置为 False，以避免外参估计的误差。
+      imu_time_inte: 0.005                              # = 1 / frequency of IMU，IMU 数据的时间间隔。
+      lidar_time_inte: 0.1                              # 激光雷达数据的时间间隔。同为= 1 / freq 
+      satu_acc: 4.0                                     # 加速度计饱和值，超过则需特殊处理避免数据异常
+      satu_gyro: 35.0                                   # 陀螺仪饱和值，超过则需特殊处理避免数据异常
+      acc_norm: 1.0                                     # 加速度计单位，1.0 for g as unit, 9.81 for m/s^2 as unit of the IMU's acceleration
+      lidar_meas_cov: 0.01                              # [MayFix] 0.001  激光雷达测量的协方差。表示激光雷达测量数据的不确定性。较小的值表示测量精度较高 
+      acc_cov_output: 500.0                             # 加速度计输出的协方差，用于描述 IMU 输出数据的不确定性
+      gyr_cov_output: 1000.0                            # 陀螺仪输出的协方差，用于描述 IMU 输出数据的不确定性
+      b_acc_cov: 0.0001                                 # 加速度计偏置的协方差，用于描述 IMU 偏置的不确定性
+      b_gyr_cov: 0.0001                                 # 陀螺仪偏置的协方差，用于描述 IMU 偏置的不确定性
+      imu_meas_acc_cov: 0.1                             # IMU 加速度计测量的协方差，用于描述 IMU 测量数据的不确定性
+      imu_meas_omg_cov: 0.1                             # IMU 角速度测量的协方差，用于描述 IMU 测量数据的不确定性
+      gyr_cov_input: 0.1                                # 陀螺仪输入模型的协方差，用于描述 IMU 输入模型的不确定性。
+      acc_cov_input: 0.1                                # 加速度计输入模型的协方差，用于描述 IMU 输入模型的不确定性。
+      plane_thr: 0.1                                    # [MayFix] 0.05，用于判断点云中是否为平面的阈值。值越小，平面检测越严格
+      match_s: 81.0                                     # [MayFix] 匹配分数
+      ivox_grid_resolution: 0.5                         # [MayFix] 体素网格的分辨率，单位米，大则减少点云密度、计算效率更高
+      gravity: [0.0, 0.0, -9.8]                         # 重力方向，用于对齐 IMU 的测量数据
+      gravity_init: [0.0, 0.0, -9.8]                    # 初始化IMU坐标系重力方向
+      extrinsic_T: [ -0.011, -0.02329, 0.04412 ]        # [MayFix] 表示激光雷达相对于 IMU 的位置偏移，单位米
+      extrinsic_R: [ 1.0, 0.0, 0.0,                     # [MayFix] 表示激光雷达相对于 IMU 的旋转矩阵。用于将激光雷达数据转换到 IMU 坐标系中
                      0.0, 1.0, 0.0,
                      0.0, 0.0, 1.0 ]
 
     odometry:
-      publish_odometry_without_downsample: True
+      publish_odometry_without_downsample: True         # 是否发布未降采样的里程计数据，高精度则需要 
 
     publish:
-      path_en: False                                    # False: close the path output
-      scan_publish_en: True                             # False: close all the point cloud output
-      scan_bodyframe_pub_en: False                      # True: output the point cloud scans in IMU-body-frame
-      tf_send_en: False                                 # True: send transform from 'camera_init' to 'aft_mapped'
+      path_en: False                                    # 是否发布路径数据
+      scan_publish_en: True                             # 是否发布点云数据
+      scan_bodyframe_pub_en: False                      # 是否发布IMU体坐标系下的点云数据
+      tf_send_en: False                                 # 是否发布坐标变换（from 'camera_init' to 'aft_mapped'）
 
     pcd_save:
-      pcd_save_en: False
+      pcd_save_en: False                                # 是否保存点云数据为PCD文件
       interval: -1                                      # how many LiDAR frames saved in each pcd file;
-                                                        # -1 : all frames will be saved in ONE pcd file, may lead to memory crash when having too much frames.
+                                                        # -1 :所有帧保存到一个文件中
 
 loam_interface:
   ros__parameters:
-    use_sim_time: false
+    use_sim_time: false                                 # 是否使用仿真时间
     state_estimation_topic: "aft_mapped_to_init"
     registered_scan_topic: "cloud_registered"
     odom_frame: "odom"
     base_frame: "base_footprint"
     lidar_frame: "front_mid360"
-/*
-配置LOAM（Lidar Odometry and Mapping）接口。
-关键参数：
-state_estimation_topic：状态估计主题（aft_mapped_to_init）。
-registered_scan_topic：注册点云主题（cloud_registered）。
-odom_frame 和 base_frame：里程计和机器人基座的TF帧。
-*/
 
 
 sensor_scan_generation:
@@ -130,51 +110,38 @@ sensor_scan_generation:
     lidar_frame: "front_mid360"
     base_frame: "base_footprint"
     robot_base_frame: "gimbal_yaw"
-/*
-生成传感器扫描数据。
-lidar_frame 和 base_frame：激光雷达和机器人基座的TF帧。
-robot_base_frame：机器人基座的虚拟帧（gimbal_yaw_fake）。
-*/
 
 
-terrain_analysis:
+terrain_analysis:                       # [MayFix] 地形分析，用于地面检测和障碍物处理
   ros__parameters:
     sensor_frame: "front_mid360"
-    scan_voxel_size: 0.05               # 点云下采样
+    scan_voxel_size: 0.05               # 点云下采样的体素大小，队点云进行体素化处理，减少点云密度提高效率，单位为米
     decay_time: 0.5                     # 点云时间差阈值 大于则不会被处理
     no_decay_dis: 0.0                   # 点云距离阈值 小于该阈值不考虑时间差
     clearing_dis: 0.0                   # 该距离外的点会被清除
-    use_sorting: True                   # 这个参数开起来就能上坡了；如果 use_sorting,那么就以周围点中的分位点作为地面点，否则以最低点作为地面点；周围其余点相对于地面点的高度作为通过代价，所以对于坡面，有的点的代价是正，有的是负，就相互抵消了；不要与 consider_drop 同时开启，计算上会有冲突
-    quantile_z: 0.2                     # useful if use_sorting is enabled.
-    consider_drop: False                # 考虑凹下去的地面,开启则将相对于地面点的高度取绝对值
-    limit_ground_lift: False            # useful if use_sorting is enabled
-    max_ground_lift: 0.3                # useful if use_sorting is enabled
-    clear_dy_obs: True                  # 清除动态物体的话，有动态物体走过的地方就走不了了
-    min_dy_obs_dis: 0.3                 # 以下参数都是在 clear_dy_obs 的情况下才有用的
-    min_dy_obs_angle: 0.0
-    min_dy_obs_rel_z: -0.3
-    abs_dy_obs_rel_z_thre: 0.2
-    min_dy_obs_vfov: -28.0
-    max_dy_obs_vfov: 33.0
-    min_dy_obs_point_num: 1
-    no_data_obstacle: False             # treat no data as obstacle
-    no_data_block_skip_num: 0
-    min_block_point_num: 10
+    use_sorting: True                   # [___不要与consider_drop同时启用___] 这个参数开起来就能上坡了；如果 use_sorting,那么就以周围点中的分位点作为地面点，否则以最低点作为地面点；周围其余点相对于地面点的高度作为通过代价，所以对于坡面，有的点的代价是正，有的是负，就相互抵消了
+    quantile_z: 0.2                     # [!仅当 use_sorting 启用时有效] 用于确定地面点的分位点位置
+    consider_drop: False                # [___不要与use_sorting同时启用___] 考虑凹下去的地面,开启则将相对于地面点的高度取绝对值
+    limit_ground_lift: False            # [!仅当 use_sorting 启用时有效] 是否限制地面抬升
+    max_ground_lift: 0.3                # [!仅当 use_sorting 启用时有效] 限制地面点的最大抬升高度
+    clear_dy_obs: True                  # 清除动态物体的话，有动态物体走过的地方就走不了了，算法会检测并清除动态物体（如行人、车辆）
+    min_dy_obs_dis: 0.3                 # [以下参数都是在 clear_dy_obs 的情况下才有用的] 动态障碍物的最小距离。
+    min_dy_obs_angle: 0.0               # 动态障碍物的最小角度
+    min_dy_obs_rel_z: -0.3              # 动态障碍物的最小相对高度。
+    abs_dy_obs_rel_z_thre: 0.2          # 动态障碍物的绝对相对高度阈值
+    min_dy_obs_vfov: -28.0              # 动态障碍物的最小垂直视场角，单位度
+    max_dy_obs_vfov: 33.0               # 动态障碍物的最大垂直视场角，单位度
+    min_dy_obs_point_num: 1             # 动态障碍物检测的最小点数
+    no_data_obstacle: False             # 是否将无数据区域视为障碍物，启用则将未检测到数据的区域视为障碍
+    no_data_block_skip_num: 0           # 无数据块的跳过数量
+    min_block_point_num: 10             # 每个块的最小点数，用于过滤点云数据，确保每个块有足够的点。
     vehicle_height: 0.5                 # 小于车辆高度的点才会进行处理
-    voxel_point_update_thre: 100
-    voxel_time_update_thre: 1.0
+    voxel_point_update_thre: 100        # 体素点更新阈值
+    voxel_time_update_thre: 1.0         # 体素时间更新阈值
     min_rel_z: -1.5                     # min_rel_z 以及 max_rel_z 限制了有效点云点的Z值范围，用于对天花板和地板进行处理
     max_rel_z: 0.5
     dis_ratio_z: 0.2                    # Z 值的最大最小范围由这两个值决定，但是并不等于这两个值，是有一个比例关系的，距离机器人越远，限定范围就越大，这其中考虑了坡度
-/*
-地形分析，用于地面检测和障碍物处理。
-关键参数：
-sensor_frame：传感器的TF帧（front_mid360）。
-scan_voxel_size：点云下采样分辨率（0.05 m）。
-use_sorting：是否使用排序算法处理点云（True）。
-vehicle_height：车辆高度（0.5 m）。
-min_rel_z 和 max_rel_z：点云的Z值范围限制。
-*/
+
 
 
 fake_vel_transform:
@@ -187,23 +154,16 @@ fake_vel_transform:
     output_cmd_vel_topic: "cmd_vel"
     cmd_spin_topic: "cmd_spin"
     init_spin_speed: 3.14
-/*
-功能：虚拟速度变换，用于导航和控制。
-关键参数：
-odom_topic：里程计主题（odometry）。
-input_cmd_vel_topic 和 output_cmd_vel_topic：输入和输出的速度主题。
-cmd_spin_topic：旋转速度主题。
-init_spin_speed：初始旋转速度（3.14 rad/s）。
-*/
 
-small_gicp_relocalization:
+
+small_gicp_relocalization:                 # 基于 GICP，匹配当前点云与先验地图，实现全局地图定位
   ros__parameters:
-    use_sim_time: false
-    num_threads: 4
-    num_neighbors: 20
-    global_leaf_size: 0.15
-    registered_leaf_size: 0.05
-    max_dist_sq: 3.0
+    use_sim_time: false                    # 是否使用仿真时间
+    num_threads: 4                         # 使用线程数量，加速GICP计算，提高处理效率
+    num_neighbors: 20                      # 每个点的邻居数量
+    global_leaf_size: 0.15                 # 全局地图的体素大小，单位米
+    registered_leaf_size: 0.05             # 注册点云的体素大小，单位米
+    max_dist_sq: 3.0                       # 最大匹配距离的平方，单位平方米
     map_frame: "map"
     odom_frame: "odom"
     base_frame: "base_footprint"
@@ -211,52 +171,37 @@ small_gicp_relocalization:
     lidar_frame: "front_mid360"
     # The prior_pcd_file does not need to be specified since it going to be set by defaults in launch.
     # prior_pcd_file: ""
-/*
-基于GICP（Generalized Iterative Closest Point）的小范围重定位。
-关键参数：
-num_threads：线程数（4）。
-global_leaf_size 和 registered_leaf_size：点云的分辨率。
-max_dist_sq：最大距离平方（3.0）。
-map_frame 和 odom_frame：地图和里程计的TF帧。
-*/
 
 
 pointcloud_to_laserscan:
-  ros__parameters:
-    use_sim_time: false
-    target_frame: chassis
-    min_height: -0.5
+  ros__parameters:                         # 用于处理激光雷达数据喵
+    use_sim_time: false                    # 是否使用仿真时间
+    target_frame: chassis                  # 目标坐标系
+    min_height: -0.5                       # [MayFix] 最大最小高度阈值，用于去掉范围外噪声点无效点
     max_height: 6.0
-    min_intensity: 0.1
+    min_intensity: 0.1                     # 点云数据的强度（反射率）范围
     max_intensity: 2.0
-    angle_min: -3.1415926                   # -M_PI/2
+    angle_min: -3.1415926                   # -M_PI/2 扫描角度
     angle_max: 3.1415926                    # M_PI/2
-    angle_increment: 0.00872665             # M_PI/360.0
-    scan_time: 0.05
-    range_min: 0.3
+    angle_increment: 0.00872665             # M_PI/360.0 扫描增量（决定分辨率）
+    scan_time: 0.05                         # 扫描时间
+    range_min: 0.3                          # [MayFix] 测量范围，去掉过远过近噪声点无效点
     range_max: 10.0
     use_inf: true
-/*
-将点云转换为激光雷达扫描数据。
-关键参数：
-target_frame：目标TF帧（chassis）。
-angle_min 和 angle_max：扫描角度范围（-π 到 π）。
-range_min 和 range_max：扫描范围（0.3 m 到 10.0 m）。
-*/
 
 
-slam_toolbox:
+slam_toolbox:                                    # 定位建图，用于移动机器人喵
   ros__parameters:
     # https://github.com/SteveMacenski/slam_toolbox/tree/humble?#configuration
-    solver_plugin: solver_plugins::CeresSolver
+    solver_plugin: solver_plugins::CeresSolver   # 非线性求解器插件
     ceres_linear_solver: SPARSE_NORMAL_CHOLESKY
     ceres_preconditioner: SCHUR_JACOBI
     ceres_trust_strategy: LEVENBERG_MARQUARDT
     ceres_dogleg_type: TRADITIONAL_DOGLEG
     ceres_loss_function: None
 
-    odom_frame: odom
-    map_frame: map
+    odom_frame: odom                             # 里程计坐标系
+    map_frame: map                               # 地图坐标系
     base_frame: base_footprint
     scan_topic: obstacle_scan
     use_map_saver: true
@@ -269,69 +214,59 @@ slam_toolbox:
     # map_start_pose: [0.0, 0.0, 0.0]
     # map_start_at_dock: true
 
-    debug_logging: false
+    debug_logging: false                         # 是否启用调试日志
     throttle_scans: 1
     scan_queue_size: 10
     transform_publish_period: 0.0                # if 0 never publishes odometry
     map_update_interval: 1.0
-    resolution: 0.05
-    min_laser_range: 0.3                         # for rastering images
-    max_laser_range: 10.0                         # for rastering images
-    minimum_time_interval: 0.5
-    transform_timeout: 0.2
-    tf_buffer_duration: 10.
-    stack_size_to_use: 40000000                   # program needs a larger stack size to serialize large maps
-    enable_interactive_mode: true
+    resolution: 0.05                             # 地图分辨率
+    min_laser_range: 0.3                         # 激光雷达的最小测量范围，for rastering images
+    max_laser_range: 10.0                        # 激光雷达的最大测量范围，for rastering images
+    minimum_time_interval: 0.5                   # 扫描数据处理的最小时间间隔
+    transform_timeout: 0.2                       # TF 查找超时
+    tf_buffer_duration: 10.0                     # TF 缓存持续时间
+    stack_size_to_use: 40000000                  # 程序需要的栈大小，用于序列化大地图
+    enable_interactive_mode: true                # 是否启用交互模式
 
     # General Parameters
     use_scan_matching: false
     use_scan_barycenter: true
-    minimum_travel_distance: 0.5
-    minimum_travel_heading: 0.3
-    scan_buffer_size: 10
-    scan_buffer_maximum_scan_distance: 10.0
-    link_match_minimum_response_fine: 0.1
-    link_scan_maximum_distance: 1.5
-    loop_search_maximum_distance: 3.0
-    do_loop_closing: false
-    loop_match_minimum_chain_size: 10
-    loop_match_maximum_variance_coarse: 3.0
-    loop_match_minimum_response_coarse: 0.35
-    loop_match_minimum_response_fine: 0.45
+    minimum_travel_distance: 0.5                 # [MayFix] 机器人移动的最小距离，用于触发扫描匹配
+    minimum_travel_heading: 0.3                  # [MayFix] 机器人移动的最小角度，用于触发扫描匹配
+    scan_buffer_size: 10                         # 扫描缓冲区大小
+    scan_buffer_maximum_scan_distance: 10.0      # 扫描缓冲区中扫描的最大距离
+    link_match_minimum_response_fine: 0.1        # 细匹配的最小响应值
+    link_scan_maximum_distance: 1.5              # 链接扫描的最大距离
+    loop_search_maximum_distance: 3.0            # 闭环检测的最大距离
+    do_loop_closing: false                       # 是否启用闭环检测
+    loop_match_minimum_chain_size: 10            # 闭环检测的最小链长
+    loop_match_maximum_variance_coarse: 3.0      # 粗匹配的最大方差
+    loop_match_minimum_response_coarse: 0.35     # 粗匹配的最小响应值
+    loop_match_minimum_response_fine: 0.45       # 细匹配的最小响应值
 
     # Correlation Parameters - Correlation Parameters
-    correlation_search_space_dimension: 0.5
-    correlation_search_space_resolution: 0.01
-    correlation_search_space_smear_deviation: 0.1
+    correlation_search_space_dimension: 0.5      # 相关性搜索空间的维度
+    correlation_search_space_resolution: 0.01    # 相关性搜索空间的分辨率
+    correlation_search_space_smear_deviation: 0.1  # 相关性搜索空间的平滑偏差
 
     # Correlation Parameters - Loop Closure Parameters
-    loop_search_space_dimension: 8.0
-    loop_search_space_resolution: 0.05
-    loop_search_space_smear_deviation: 0.03
+    loop_search_space_dimension: 8.0             # 闭环检测搜索空间的维度
+    loop_search_space_resolution: 0.05           # 闭环检测搜索空间的分辨率
+    loop_search_space_smear_deviation: 0.03      # 闭环检测搜索空间的平滑偏差
 
     # Scan Matcher Parameters
-    distance_variance_penalty: 5.5
-    angle_variance_penalty: 5.0
+    distance_variance_penalty: 5.5               # 距离方差惩罚
+    angle_variance_penalty: 5.0                  # 角度方差惩罚
 
-    fine_search_angle_offset: 0.00349
-    coarse_search_angle_offset: 0.349
-    coarse_angle_resolution: 0.0349
-    minimum_angle_penalty: 0.9
-    minimum_distance_penalty: 0.5
-    use_response_expansion: true
-/*
-配置SLAM Toolbox，用于2D SLAM。
-关键参数：
-solver_plugin：求解器插件（CeresSolver）。
-odom_frame、map_frame 和 base_frame：里程计、地图和机器人基座的TF帧。
-scan_topic：激光雷达扫描主题（obstacle_scan）。
-mode：SLAM模式（mapping）。
-resolution：地图分辨率（0.05 m）。
-loop_search_maximum_distance：回环检测的最大距离（3.0 m）。
-*/
+    fine_search_angle_offset: 0.00349            # 细搜索角度偏移
+    coarse_search_angle_offset: 0.349            # 粗搜索角度偏移
+    coarse_angle_resolution: 0.0349              # 粗搜索角度分辨率
+    minimum_angle_penalty: 0.9                   # 最小角度惩罚
+    minimum_distance_penalty: 0.5                # 最小距离惩罚
+    use_response_expansion: true                 # 是否在未找到有效匹配时自动扩展搜索空间
 
 
-bt_navigator:
+bt_navigator:                                    # 行为树导航器，用于路径规划和行为控制
   ros__parameters:
     use_sim_time: false
     global_frame: map
@@ -390,16 +325,10 @@ bt_navigator:
       - nav2_assisted_teleop_cancel_bt_node
       - nav2_drive_on_heading_cancel_bt_node
       - nav2_is_battery_charging_condition_bt_node
-/*
-行为树导航器，用于路径规划和行为控制。
-关键参数：
-global_frame 和 robot_base_frame：全局和机器人基座的TF帧。
-bt_loop_duration：行为树循环周期（10 s）。
-default_nav_to_pose_bt_xml 和 default_nav_through_poses_bt_xml：行为树文件路径。
-*/
 
 
-controller_server:
+
+controller_server:               # 控制器
   ros__parameters:
     use_sim_time: false
     odom_topic: odometry
@@ -451,14 +380,10 @@ controller_server:
       curvature_forward_dist: 0.7                       # 前向距离，用于曲率计算
       curvature_backward_dist: 0.3                      # 后向距离，用于曲率计算
       max_velocity_scaling_factor_rate: 0.9             # 速度缩放因子的最大变化率
-/*
-controller_frequency：控制器频率（20 Hz）。
-min_x_velocity_threshold 和 min_theta_velocity_threshold：最小速度阈值。
-FollowPath：路径跟踪控制器的参数（PID控制、速度限制等）。
-*/
 
 
-local_costmap:
+
+local_costmap:                                          # 局部代价地图配置。
   local_costmap:
     ros__parameters:
       use_sim_time: true
@@ -472,8 +397,8 @@ local_costmap:
       resolution: 0.05
       robot_radius: 0.2
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
-      obstacle_layer:
-        plugin: "pb_nav2_costmap_2d::IntensityObstacleLayer"
+      obstacle_layer:                                   # 障碍物层的配置（如点云源、障碍物高度范围等）
+        plugin: "pb_nav2_costmap_2d::IntensityObstacleLayer"  
         enabled: True
         footprint_clearing_enabled: True
         min_obstacle_intensity: 0.1
@@ -500,10 +425,9 @@ local_costmap:
         cost_scaling_factor: 4.0
         inflation_radius: 0.7
       always_send_full_costmap: False
-/*见下global后*/
 
 
-global_costmap:
+global_costmap:                                       # 全局代价地图配置。
   global_costmap:
     ros__parameters:
       use_sim_time: true
@@ -515,7 +439,7 @@ global_costmap:
       resolution: 0.05
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
-      obstacle_layer:
+      obstacle_layer:                                 # 障碍物层的配置（如点云源、障碍物高度范围等）
         plugin: "pb_nav2_costmap_2d::IntensityObstacleLayer"
         enabled: True
         footprint_clearing_enabled: True
@@ -543,13 +467,7 @@ global_costmap:
         cost_scaling_factor: 4.0
         inflation_radius: 0.7
       always_send_full_costmap: False
-/*
-局部和全局代价地图配置。
-关键参数：
-update_frequency 和 publish_frequency：更新和发布频率。
-plugins：代价地图插件（如障碍物层、静态层、膨胀层）。
-obstacle_layer：障碍物层的配置（如点云源、障碍物高度范围等）。
-*/
+
 
 
 # The yaml_filename does not need to be specified since it going to be set by defaults in launch.
@@ -559,41 +477,35 @@ map_server:
   ros__parameters:
     yaml_filename: ""
 
-map_saver:
+map_saver:                             # 地图服务器和保存器
   ros__parameters:
     use_sim_time: false
     save_map_timeout: 5.0
     free_thresh_default: 0.25
     occupied_thresh_default: 0.65
     map_subscribe_transient_local: True
-/*
-地图服务器和保存器。
-关键参数：
-yaml_filename：地图文件路径。
-save_map_timeout：保存地图的超时时间（5.0 s）。
-*/
 
 
-planner_server:
+planner_server:                           # 路径规划器服务器
   ros__parameters:
     use_sim_time: false
     expected_planner_frequency: 10.0
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_smac_planner/SmacPlannerHybrid"
-      tolerance: 0.5                      # 如果无法到达精确位置的规划容差，单位：米
+      tolerance: 0.5                      # 如果无法到达精确位置的规划容差，单位米
       allow_unknown: true                 # 允许在未知空间中行驶
       downsample_costmap: false           # 是否对地图进行下采样
       downsampling_factor: 1              # 代价地图层分辨率的倍数 (e.g. 2 on a 5cm costmap would be 10cm)
       max_iterations: 1000000             # 搜索的最大总迭代次数（如果无法到达），设置为-1以禁用
       max_on_approach_iterations: 1000    # 一旦在容差范围内，尝试到达目标的最大迭代次数
       max_planning_time: 3.5              # 规划、平滑和上采样的最大时间（秒）。将根据规划后的剩余时间缩放最大平滑和上采样时间。
-      cost_travel_multiplier: 2.0         # For 2D: 应用于搜索的代价乘数，以避开高代价区域。较大的值将更精确地放置在通道的中心（如果存在非“FREE”代价势场），但计算时间稍长。为了优化速度，1.0是合理的值。合理的折衷值是2.0。0.0的值有效地禁用避开障碍物的功能，像一个简单的二进制搜索A*。
+      cost_travel_multiplier: 2.0         # [MayFix] For 2D: 应用于搜索的代价乘数，以避开高代价区域。较大的值将更精确地放置在通道的中心（如果存在非“FREE”代价势场），但计算时间稍长。为了优化速度，1.0是合理的值。合理的折衷值是2.0。0.0的值有效地禁用避开障碍物的功能，像一个简单的二进制搜索A*。
       motion_model_for_search: "DUBIN"    # For Hybrid Dubin, Redds-Shepp
       angle_quantization_bins: 64         # For Hybrid nodes: 搜索的角度桶数，对于2D节点必须为1（无角度搜索）
       analytic_expansion_ratio: 3.5       # For Hybrid/Lattice nodes: 在搜索过程中尝试解析扩展的比例，用于最终接近。
       analytic_expansion_max_length: 3.0  # For Hybrid/Lattice nodes: 解析扩展被认为有效的最大长度，以防止不安全的捷径（单位：米）。这应该与最小转弯半径成比例，不应小于最小半径的4-5倍。
-      minimum_turning_radius: 0.05        # For Hybrid/Lattice nodes: 路径/车辆的最小转弯半径，单位：米
+      minimum_turning_radius: 0.05        # [MayFix] For Hybrid/Lattice nodes: 路径/车辆的最小转弯半径，单位：米
       retrospective_penalty: 0.025        # For Hybrid/Lattice nodes: 优先考虑路径上较晚的机动而不是较早的机动。节省搜索时间，因为较早的节点不会被扩展，直到有必要。必须 >= 0.0且 <= 1.0
       reverse_penalty: 1.0                # For Reeds-Shepp model: 应用于倒车的惩罚，必须 >= 1
       change_penalty: 0.0                 # For Hybrid nodes: 应用于改变方向的惩罚，必须 >= 0
@@ -610,35 +522,21 @@ planner_server:
         w_data: 0.2
         tolerance: 1.0e-10
         do_refinement: true
-/*
-路径规划器服务器。
-关键参数：
-planner_plugins：路径规划器插件（如GridBased）。
-tolerance：路径规划的容差（0.5 m）。
-motion_model_for_search：运动模型（DUBIN）。
-minimum_turning_radius：最小转弯半径（0.05 m）。
-*/
 
 
-smoother_server:
+
+smoother_server:                          # 路径平滑器服务器
   ros__parameters:
     use_sim_time: false
-    smoother_plugins: ["simple_smoother"]
+    smoother_plugins: ["simple_smoother"] # 平滑器插件
     simple_smoother:
       plugin: "nav2_smoother::SimpleSmoother"
-      tolerance: 1.0e-10
-      max_its: 1000
+      tolerance: 1.0e-10                  # 平滑容差
+      max_its: 1000                       # 最大迭代次数
       do_refinement: True
-/*
-路径平滑器服务器。
-关键参数：
-simple_smoother：平滑器插件（SimpleSmoother）。
-max_iterations：最大迭代次数（1000）。
-tolerance：平滑容差（1.0e-10）。
-*/
 
 
-behavior_server:
+behavior_server:                          # 行为服务器，用于导航中的行为控制
   ros__parameters:
     use_sim_time: false
     local_costmap_topic: local_costmap/costmap_raw
@@ -669,15 +567,9 @@ behavior_server:
     service_name: "global_costmap/get_costmap"
     max_radius: 2.0
     visualize: false
-/*
-行为服务器，用于导航中的行为控制。
-关键参数：
-behavior_plugins：行为插件（如旋转、后退、等待等）。
-max_rotational_vel 和 min_rotational_vel：旋转速度范围。
-*/
 
-
-waypoint_follower:
+    
+waypoint_follower:                      # 路径点跟随器
   ros__parameters:
     use_sim_time: false
     loop_rate: 20
@@ -687,38 +579,25 @@ waypoint_follower:
       plugin: "nav2_waypoint_follower::WaitAtWaypoint"
       enabled: True
       waypoint_pause_duration: 200
-/*
-路径点跟随器。
-关键参数：
-loop_rate：循环频率（20 Hz）。
-waypoint_task_executor_plugin：路径点任务执行器插件（wait_at_waypoint）。
-*/
 
 
-velocity_smoother:
+velocity_smoother:                      # [MayFix] 速度平滑器
   ros__parameters:
     use_sim_time: false
     smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [2.5, 2.5, 3.0]
+    max_velocity: [2.5, 2.5, 3.0]       # 速度范围
     min_velocity: [-2.5, -2.5, -3.0]
-    max_accel: [4.5, 4.5, 5.0]
+    max_accel: [4.5, 4.5, 5.0]          # 加速度和减速度范围
     max_decel: [-4.5, -4.5, -5.0]
     odom_topic: "odometry"
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
-/*
-速度平滑器。
-关键参数：
-smoothing_frequency：平滑频率（20 Hz）。
-max_velocity 和 min_velocity：速度范围。
-max_accel 和 max_decel：加速度和减速度范围。
-*/
 
 
-pb_teleop_twist_joy_node:
+pb_teleop_twist_joy_node:               # 基于游戏手柄的遥操作节点。
   ros__parameters:
     use_sim_time: false
     robot_base_frame: gimbal_yaw
@@ -753,10 +632,3 @@ pb_teleop_twist_joy_node:
       roll: 0.0
       pitch: -1.5
       yaw: 3.5
-/*
-基于游戏手柄的遥操作节点。
-关键参数：
-control_mode：控制模式（auto_control）。
-enable_button 和 enable_turbo_button：启用和加速按钮。
-axis_chassis 和 scale_chassis：底盘控制轴和速度缩放。
-*/
