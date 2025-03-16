@@ -1,4 +1,12 @@
 # reality yaml 备注调参版，[MayFix]为可尝试调节部分。
+# 注释了wiki的部分 为官方总结的调参指南。
+
+# wiki：
+# 在实车部署中，需修改 pb2025_robot_description 功能包中的 pb2025_sentry_robot.sdf.xmacro。
+# 建议基于现有文件创建一份属于自己队伍的机器人描述文件（例如 smbu_sentry_robot.sdf.xmacro）。
+# 创建完成后，需要将 robot_name 更改为新文件无后缀的文件名（如 smbu_sentry_robot）。
+
+
 livox_ros_driver2:
   ros__parameters:
     xfer_format: 4                                      # 0-PointCloud2Msg(PointXYZRTL), 1-LivoxCustomMsg, 2-PclPxyziMsg, 3-LivoxImuMsg, 4-AllMsg 数据传输格式
@@ -25,7 +33,7 @@ point_lio:
     filter_size_map: 0.2                                # [MayFix] Options: 0.5, 0.3, 0.15, 0.1  地图点云滤波的分辨率
     ivox_nearby_type: 18                                # [MayFix] Options: 0, 6, 18, 26 点云处理的邻域类型。
     runtime_pos_log_enable: False                       # Option: True 是否在运行时记录位置信息
-
+    # wiki内说明：室内可以把 filter_size_surf, filter_size_map 调小一点，一般分别为 0.05, 0.15. 对于 ouster 或者这种点特别多的，point_filter_num 可以调大，比如 5~10.
 
 
     common:
@@ -62,6 +70,7 @@ point_lio:
       satu_gyro: 35.0                                   # 陀螺仪饱和值，超过则需特殊处理避免数据异常
       acc_norm: 1.0                                     # 加速度计单位，1.0 for g as unit, 9.81 for m/s^2 as unit of the IMU's acceleration
       lidar_meas_cov: 0.01                              # [MayFix] 0.001  激光雷达测量的协方差。表示激光雷达测量数据的不确定性。较小的值表示测量精度较高 
+                                                        # wiki内说明：当点云较密集时，用较大的 lidar_meas_cov。结构较单一时，用较大的 lidar_meas_cov 。
       acc_cov_output: 500.0                             # 加速度计输出的协方差，用于描述 IMU 输出数据的不确定性
       gyr_cov_output: 1000.0                            # 陀螺仪输出的协方差，用于描述 IMU 输出数据的不确定性
       b_acc_cov: 0.0001                                 # 加速度计偏置的协方差，用于描述 IMU 偏置的不确定性
@@ -74,6 +83,7 @@ point_lio:
       match_s: 81.0                                     # [MayFix] 匹配分数
       ivox_grid_resolution: 0.5                         # [MayFix] 体素网格的分辨率，单位米，大则减少点云密度、计算效率更高
       gravity: [0.0, 0.0, -9.8]                         # 重力方向，用于对齐 IMU 的测量数据
+                                                        # wiki：只要 LiDAR 与车体的相对位置发生变化，请同步修改机器人描述文件和此gravity 参数
       gravity_init: [0.0, 0.0, -9.8]                    # 初始化IMU坐标系重力方向
       extrinsic_T: [ -0.011, -0.02329, 0.04412 ]        # [MayFix] 表示激光雷达相对于 IMU 的位置偏移，单位米
       extrinsic_R: [ 1.0, 0.0, 0.0,                     # [MayFix] 表示激光雷达相对于 IMU 的旋转矩阵。用于将激光雷达数据转换到 IMU 坐标系中
