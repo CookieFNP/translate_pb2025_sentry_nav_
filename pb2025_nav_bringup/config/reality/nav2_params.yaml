@@ -6,6 +6,7 @@
 # 建议基于现有文件创建一份属于自己队伍的机器人描述文件（例如 smbu_sentry_robot.sdf.xmacro）。
 # 创建完成后，需要将 robot_name 更改为新文件无后缀的文件名（如 smbu_sentry_robot）。
 
+# 合工：使用仓库里的栅格图,然后关重定位，实践效果还行
 
 livox_ros_driver2:
   ros__parameters:
